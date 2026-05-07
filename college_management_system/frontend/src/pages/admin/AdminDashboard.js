@@ -27,6 +27,9 @@ import ViewStudent from './studentRelated/ViewStudent';
 import AddNotice from './noticeRelated/AddNotice';
 import ShowNotices from './noticeRelated/ShowNotices';
 
+import AddAssignment from './assignmentRelated/AddAssignment';
+import ShowAssignments from './assignmentRelated/ShowAssignments';
+
 import ShowSubjects from './subjectRelated/ShowSubjects';
 import SubjectForm from './subjectRelated/SubjectForm';
 import ViewSubject from './subjectRelated/ViewSubject';
@@ -41,6 +44,7 @@ import AddClass from './classRelated/AddClass';
 import ClassDetails from './classRelated/ClassDetails';
 import ShowClasses from './classRelated/ShowClasses';
 import AccountMenu from '../../components/AccountMenu';
+import PanelSwitcher from '../../components/PanelSwitcher';
 
 const AdminDashboard = () => {
     const [open, setOpen] = useState(false);
@@ -75,6 +79,7 @@ const AdminDashboard = () => {
                         >
                             Admin Dashboard
                         </Typography>
+                        <PanelSwitcher />
                         <AccountMenu />
                     </Toolbar>
                 </AppBar>
@@ -93,7 +98,6 @@ const AdminDashboard = () => {
                     <Toolbar />
                     <Routes>
                         <Route path="/" element={<AdminHomePage />} />
-                        <Route path='*' element={<Navigate to="/" />} />
                         <Route path="/Admin/dashboard" element={<AdminHomePage />} />
                         <Route path="/Admin/profile" element={<AdminProfile />} />
                         <Route path="/Admin/complains" element={<SeeComplains />} />
@@ -101,6 +105,10 @@ const AdminDashboard = () => {
                         {/* Notice */}
                         <Route path="/Admin/addnotice" element={<AddNotice />} />
                         <Route path="/Admin/notices" element={<ShowNotices />} />
+
+                        {/* Assignment */}
+                        <Route path="/Admin/assignments" element={<ShowAssignments />} />
+                        <Route path="/Admin/assignments/add" element={<AddAssignment />} />
 
                         {/* Subject */}
                         <Route path="/Admin/subjects" element={<ShowSubjects />} />
@@ -135,6 +143,7 @@ const AdminDashboard = () => {
                         <Route path="/Admin/teachers/addteacher/:id" element={<AddTeacher />} />
 
                         <Route path="/logout" element={<Logout />} />
+                        <Route path='*' element={<Navigate to="/" />} />
                     </Routes>
                 </Box>
             </Box>

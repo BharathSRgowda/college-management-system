@@ -23,6 +23,7 @@ const {
     removeStudentAttendanceBySubject,
     removeStudentAttendance } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
+const { assignmentCreate, assignmentList, assignmentListByClass, deleteAssignment, deleteAssignments } = require('../controllers/assignment-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, teacherAttendance } = require('../controllers/teacher-controller.js');
 
 // Admin
@@ -116,5 +117,15 @@ router.get("/Subject/:id", getSubjectDetail)
 router.delete("/Subject/:id", deleteSubject)
 router.delete("/Subjects/:id", deleteSubjects)
 router.delete("/SubjectsClass/:id", deleteSubjectsByClass)
+
+// Assignment
+
+router.post('/AssignmentCreate', assignmentCreate);
+
+router.get('/AssignmentList/:id', assignmentList);
+router.get('/AssignmentListByClass/:id', assignmentListByClass);
+
+router.delete('/Assignment/:id', deleteAssignment);
+router.delete('/Assignments/:id', deleteAssignments);
 
 module.exports = router;

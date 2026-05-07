@@ -7,9 +7,12 @@ import {
     Typography,
     Divider,
     IconButton,
+    Button,
+    Chip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import TeacherSideBar from './TeacherSideBar';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Logout from '../Logout'
@@ -23,11 +26,26 @@ import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
 import StudentExamMarks from '../admin/studentRelated/StudentExamMarks';
+import TeacherAssignments from './TeacherAssignments';
+import TeacherAddAssignment from './TeacherAddAssignment';
+import { useDispatch } from 'react-redux';
+import { authSuccess } from '../../redux/userRelated/userSlice';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
+    const dispatch = useDispatch();
     const toggleDrawer = () => {
         setOpen(!open);
+    };
+
+    const isImpersonating = Boolean(localStorage.getItem('originalAdmin'));
+
+    const switchBackToAdmin = () => {
+        const original = localStorage.getItem('originalAdmin');
+        if (original) {
+            localStorage.removeItem('originalAdmin');
+            dispatch(authSuccess(JSON.parse(original)));
+        }
     };
 
     return (
@@ -57,6 +75,31 @@ const TeacherDashboard = () => {
                         >
                             Teacher Dashboard
                         </Typography>
+                        {isImpersonating && (
+                            <>
+                                <Chip
+                                    label="Preview Mode"
+                                    size="small"
+                                    sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', mr: 1, fontSize: 11 }}
+                                />
+                                <Button
+                                    onClick={switchBackToAdmin}
+                                    size="small"
+                                    startIcon={<AdminPanelSettingsIcon />}
+                                    sx={{
+                                        color: 'white',
+                                        border: '1px solid rgba(255,255,255,0.4)',
+                                        borderRadius: 2,
+                                        mr: 1,
+                                        textTransform: 'none',
+                                        fontSize: 12,
+                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+                                    }}
+                                >
+                                    Back to Admin
+                                </Button>
+                            </>
+                        )}
                         <AccountMenu />
                     </Toolbar>
                 </AppBar>
@@ -75,19 +118,17 @@ const TeacherDashboard = () => {
                     <Toolbar />
                     <Routes>
                         <Route path="/" element={<TeacherHomePage />} />
-                        <Route path='*' element={<Navigate to="/" />} />
                         <Route path="/Teacher/dashboard" element={<TeacherHomePage />} />
                         <Route path="/Teacher/profile" element={<TeacherProfile />} />
-
                         <Route path="/Teacher/complain" element={<TeacherComplain />} />
-
                         <Route path="/Teacher/class" element={<TeacherClassDetails />} />
                         <Route path="/Teacher/class/student/:id" element={<TeacherViewStudent />} />
-
                         <Route path="/Teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
                         <Route path="/Teacher/class/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />
-
+                        <Route path="/Teacher/assignments" element={<TeacherAssignments />} />
+                        <Route path="/Teacher/assignments/add" element={<TeacherAddAssignment />} />
                         <Route path="/logout" element={<Logout />} />
+                        <Route path='*' element={<Navigate to="/" />} />
                     </Routes>
                 </Box>
             </Box>

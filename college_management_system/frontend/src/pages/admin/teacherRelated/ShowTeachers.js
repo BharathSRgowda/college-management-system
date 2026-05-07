@@ -1,169 +1,188 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom'
-import { getAllTeachers } from '../../../redux/teacherRelated/teacherHandle';
+import { useNavigate } from 'react-router-dom';
 import {
-    Paper, Table, TableBody, TableContainer,
-    TableHead, TablePagination, Button, Box, IconButton,
+    Box, Paper, Typography, Avatar, Button, IconButton, Tooltip,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Chip, TextField, InputAdornment, TablePagination
 } from '@mui/material';
-import { deleteUser } from '../../../redux/userRelated/userHandle';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import { StyledTableCell, StyledTableRow } from '../../../components/styles';
-import { BlueButton, GreenButton } from '../../../components/buttonStyles';
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
-import Popup from '../../../components/Popup';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import BookIcon from '@mui/icons-material/Book';
+import SearchIcon from '@mui/icons-material/Search';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { getAllTeachers } from '../../../redux/teacherRelated/teacherHandle';
 
 const ShowTeachers = () => {
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { teachersList, loading, error, response } = useSelector((state) => state.teacher);
+    const { teachersList, loading, response } = useSelector((state) => state.teacher);
     const { currentUser } = useSelector((state) => state.user);
+
+    const [search, setSearch] = useState('');
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(8);
 
     useEffect(() => {
         dispatch(getAllTeachers(currentUser._id));
     }, [currentUser._id, dispatch]);
 
-    const [showPopup, setShowPopup] = useState(false);
-    const [message, setMessage] = useState("");
+    const filtered = Array.isArray(teachersList)
+        ? teachersList.filter(
+              (t) =>
+                  t.name.toLowerCase().includes(search.toLowerCase()) ||
+                  t.teachSclass?.sclassName?.toLowerCase().includes(search.toLowerCase()) ||
+                  t.teachSubject?.subName?.toLowerCase().includes(search.toLowerCase())
+          )
+        : [];
 
-    if (loading) {
-        return <div>Loading...</div>;
-    } else if (response) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                <GreenButton variant="contained" onClick={() => navigate("/Admin/teachers/chooseclass")}>
-                    Add Teacher
-                </GreenButton>
-            </Box>
-        );
-    } else if (error) {
-        console.log(error);
-    }
+    const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-    const deleteHandler = (deleteID, address) => {
-        console.log(deleteID);
-        console.log(address);
-        setMessage("Sorry the delete function has been disabled for now.")
-        setShowPopup(true)
-
-        // dispatch(deleteUser(deleteID, address)).then(() => {
-        //     dispatch(getAllTeachers(currentUser._id));
-        // });
+    const avatarColor = (name) => {
+        const colors = ['#10b981', '#4f46e5', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+        return colors[name?.charCodeAt(0) % colors.length] || '#10b981';
     };
 
-    const columns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'teachSubject', label: 'Subject', minWidth: 100 },
-        { id: 'teachSclass', label: 'Class', minWidth: 170 },
-    ];
-
-    const rows = teachersList.map((teacher) => {
-        return {
-            name: teacher.name,
-            teachSubject: teacher.teachSubject?.subName || null,
-            teachSclass: teacher.teachSclass.sclassName,
-            teachSclassID: teacher.teachSclass._id,
-            id: teacher._id,
-        };
-    });
-
-    const actions = [
-        {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Teacher',
-            action: () => navigate("/Admin/teachers/chooseclass")
-        },
-        {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Teachers',
-            action: () => deleteHandler(currentUser._id, "Teachers")
-        },
-    ];
+    const noSubjectCount = Array.isArray(teachersList) ? teachersList.filter((t) => !t.teachSubject?.subName).length : 0;
 
     return (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer>
-                <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                        <StyledTableRow>
-                            {columns.map((column) => (
-                                <StyledTableCell
-                                    key={column.id}
-                                    align={column.align}
-                                    style={{ minWidth: column.minWidth }}
-                                >
-                                    {column.label}
-                                </StyledTableCell>
-                            ))}
-                            <StyledTableCell align="center">
-                                Actions
-                            </StyledTableCell>
-                        </StyledTableRow>
-                    </TableHead>
-                    <TableBody>
-                        {rows
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((row) => {
-                                return (
-                                    <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                                        {columns.map((column) => {
-                                            const value = row[column.id];
-                                            if (column.id === 'teachSubject') {
-                                                return (
-                                                    <StyledTableCell key={column.id} align={column.align}>
-                                                        {value ? (
-                                                            value
-                                                        ) : (
-                                                            <Button variant="contained"
-                                                                onClick={() => {
-                                                                    navigate(`/Admin/teachers/choosesubject/${row.teachSclassID}/${row.id}`)
-                                                                }}>
-                                                                Add Subject
-                                                            </Button>
-                                                        )}
-                                                    </StyledTableCell>
-                                                );
-                                            }
-                                            return (
-                                                <StyledTableCell key={column.id} align={column.align}>
-                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
-                                                </StyledTableCell>
-                                            );
-                                        })}
-                                        <StyledTableCell align="center">
-                                            <IconButton onClick={() => deleteHandler(row.id, "Teacher")}>
-                                                <PersonRemoveIcon color="error" />
-                                            </IconButton>
-                                            <BlueButton variant="contained"
-                                                onClick={() => navigate("/Admin/teachers/teacher/" + row.id)}>
-                                                View
-                                            </BlueButton>
-                                        </StyledTableCell>
-                                    </StyledTableRow>
-                                );
-                            })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25, 100]}
-                component="div"
-                count={rows.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={(event, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(event) => {
-                    setRowsPerPage(parseInt(event.target.value, 5));
-                    setPage(0);
-                }}
-            />
+        <Box sx={{ p: 3, bgcolor: '#f8fafc', minHeight: '100vh' }}>
+            {/* Header */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar sx={{ bgcolor: '#10b98120', width: 44, height: 44 }}>
+                        <SupervisorAccountIcon sx={{ color: '#10b981' }} />
+                    </Avatar>
+                    <Box>
+                        <Typography variant="h5" fontWeight={700}>Teachers</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {filtered.length} teacher{filtered.length !== 1 ? 's' : ''}
+                            {noSubjectCount > 0 && ` · ${noSubjectCount} need subject assignment`}
+                        </Typography>
+                    </Box>
+                </Box>
+                <Button
+                    variant="contained"
+                    startIcon={<PersonAddIcon />}
+                    onClick={() => navigate('/Admin/teachers/chooseclass')}
+                    sx={{ bgcolor: '#10b981', borderRadius: 2, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#059669' } }}
+                >
+                    Add Teacher
+                </Button>
+            </Box>
 
-            <SpeedDialTemplate actions={actions} />
-            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </Paper >
+            {/* Alert for unassigned subjects */}
+            {noSubjectCount > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 2, bgcolor: '#fef3c7', borderRadius: 2, border: '1px solid #fde68a', mb: 2 }}>
+                    <WarningAmberIcon sx={{ color: '#f59e0b', fontSize: 18 }} />
+                    <Typography variant="body2" color="#92400e">
+                        {noSubjectCount} teacher{noSubjectCount > 1 ? 's have' : ' has'} no subject assigned. Click "Assign Subject" to fix.
+                    </Typography>
+                </Box>
+            )}
+
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'grey.100' }}>
+                <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'grey.100' }}>
+                    <TextField
+                        size="small"
+                        placeholder="Search by name, class or subject..."
+                        value={search}
+                        onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                        InputProps={{
+                            startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: 'text.secondary', fontSize: 18 }} /></InputAdornment>,
+                        }}
+                        sx={{ width: 340, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    />
+                </Box>
+
+                {loading ? (
+                    <Box sx={{ p: 6, textAlign: 'center' }}>
+                        <Typography color="text.secondary">Loading teachers...</Typography>
+                    </Box>
+                ) : response || filtered.length === 0 ? (
+                    <Box sx={{ p: 6, textAlign: 'center' }}>
+                        <SupervisorAccountIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
+                        <Typography variant="h6" color="text.secondary">No teachers found</Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<PersonAddIcon />}
+                            sx={{ mt: 2, bgcolor: '#10b981', borderRadius: 2, textTransform: 'none' }}
+                            onClick={() => navigate('/Admin/teachers/chooseclass')}
+                        >
+                            Add First Teacher
+                        </Button>
+                    </Box>
+                ) : (
+                    <>
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                        <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Teacher</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Class</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Subject</TableCell>
+                                        <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }}>Actions</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {paginated.map((teacher) => (
+                                        <TableRow key={teacher._id} hover sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
+                                            <TableCell onClick={() => navigate('/Admin/teachers/teacher/' + teacher._id)} sx={{ cursor: 'pointer' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                    <Avatar sx={{ width: 36, height: 36, bgcolor: avatarColor(teacher.name), fontSize: 14, fontWeight: 700 }}>
+                                                        {teacher.name?.charAt(0).toUpperCase()}
+                                                    </Avatar>
+                                                    <Typography variant="body2" fontWeight={600}>{teacher.name}</Typography>
+                                                </Box>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip label={teacher.teachSclass?.sclassName} size="small" variant="outlined" sx={{ borderColor: '#10b981', color: '#10b981', fontWeight: 600 }} />
+                                            </TableCell>
+                                            <TableCell>
+                                                {teacher.teachSubject?.subName ? (
+                                                    <Chip label={teacher.teachSubject.subName} size="small" sx={{ bgcolor: '#4f46e510', color: '#4f46e5', fontWeight: 600 }} />
+                                                ) : (
+                                                    <Button
+                                                        size="small"
+                                                        variant="outlined"
+                                                        startIcon={<BookIcon sx={{ fontSize: 14 }} />}
+                                                        onClick={() => navigate(`/Admin/teachers/choosesubject/${teacher.teachSclass?._id}/${teacher._id}`)}
+                                                        sx={{ borderColor: '#f59e0b', color: '#f59e0b', textTransform: 'none', fontSize: 11, borderRadius: 1.5, '&:hover': { bgcolor: '#fef3c7' } }}
+                                                    >
+                                                        Assign Subject
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                                                    <Tooltip title="View Details">
+                                                        <IconButton size="small" onClick={() => navigate('/Admin/teachers/teacher/' + teacher._id)}
+                                                            sx={{ bgcolor: '#10b98110', '&:hover': { bgcolor: '#10b98120' } }}>
+                                                            <VisibilityIcon sx={{ fontSize: 16, color: '#10b981' }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <TablePagination
+                            component="div"
+                            count={filtered.length}
+                            page={page}
+                            onPageChange={(e, newPage) => setPage(newPage)}
+                            rowsPerPage={rowsPerPage}
+                            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value)); setPage(0); }}
+                            rowsPerPageOptions={[5, 8, 15, 25]}
+                        />
+                    </>
+                )}
+            </Paper>
+        </Box>
     );
 };
 
-export default ShowTeachers
+export default ShowTeachers;
