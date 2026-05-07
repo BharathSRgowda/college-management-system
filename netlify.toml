@@ -1,7 +1,7 @@
 [build]
   base    = "college_management_system/frontend"
   command = "npm run build"
-  publish = "college_management_system/frontend/build"
+  publish = "build"
 
 [[redirects]]
   from   = "/*"
