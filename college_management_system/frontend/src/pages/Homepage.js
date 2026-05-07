@@ -15,9 +15,9 @@ const Homepage = () => {
                 <Grid item xs={12} md={6}>
                     <StyledPaper elevation={3}>
                         <StyledTitle>
-                            Welcome to
+                            An Interactive Web-Based
                             <br />
-                            college Management
+                            College Management
                             <br />
                             System
                         </StyledTitle>
